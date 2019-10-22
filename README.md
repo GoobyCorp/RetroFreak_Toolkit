@@ -25,8 +25,7 @@ persist.sys.usb.config=adb
 ```
 usage: RetroFreak.py [-h] [-i IN_FILE] [-o OUT_DIR] [-l] [-e] [-d]
 
-A script to make unpacking and packing Retron 5 updates easier (or actually
-possible)
+A script to make unpacking RetroFreak updates easier (or even possible in the first place)
 
 optional arguments:
   -h, --help            show this help message and exit
