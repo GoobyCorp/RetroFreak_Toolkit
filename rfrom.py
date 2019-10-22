@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 from binascii import unhexlify, crc32
 from struct import unpack, pack_into, unpack_from
 
+# pip install pycryptodomex
 from Cryptodome.Cipher import AES
 from Cryptodome.PublicKey import RSA
 from Cryptodome.Hash import MD5, SHA1
