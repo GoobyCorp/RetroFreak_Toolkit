@@ -8,15 +8,22 @@ The RetroFreak has a rk3066 SoC and uses the Rockchip image format for updates; 
 * Python 3
 * Pycryptodomex >= 3.9.0
 
+##### RetroFreak.py
+A script to unpack updates for the RetroFreak that you can download from the official website [here](https://www.cybergadget.co.jp/support/retrofreak/en/update.html).
+
+##### RetroFreakROM.py
+This file is used to encrypt ROM's so you can play them on your RetroFreak if you already have them dumped.
+
 ##### An example to enable ADB (build.prop inside system.img):
 ```
 persist.service.adb.enable=1                                                    
 persist.service.debuggable=1
 persist.sys.usb.config=adb
 ```
+
 ##### Usage:
 ```
-usage: Retron5.py [-h] [-i IN_FILE] [-o OUT_DIR] [-l] [-e] [-d]
+usage: RetroFreak.py [-h] [-i IN_FILE] [-o OUT_DIR] [-l] [-e] [-d]
 
 A script to make unpacking and packing Retron 5 updates easier (or actually
 possible)
