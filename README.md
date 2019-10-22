@@ -2,7 +2,7 @@
 
 This is a toolkit intended to help players root their RetroFreak console to get more features out of it.
 
-The RetroFreak has a rk3066 SoC and uses the Rockchip image format for updates; these updates can be modified and repackaged using imgRePackerRK.
+The RetroFreak has an rk3066 SoC and uses the Rockchip image format for updates; these updates can be modified and repackaged using imgRePackerRK.
 
 ##### Requirements:
 * Python 3
