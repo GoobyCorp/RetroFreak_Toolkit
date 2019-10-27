@@ -498,7 +498,7 @@ class SystemUpdateFile:
 			signature = record_dec[-UPDATE_PUB_KEY.size_in_bytes():]
 			assert self.verifier.verify(SHA1.new(record_dec[:-UPDATE_PUB_KEY.size_in_bytes()]), signature), "Invalid signature"
 			sio.seek(16)
-			for x in range(file_count):
+			for i in range(file_count):
 				file = UpdateFile()
 				file.valid = False  # probably not going to check this ever
 				file.name = sio.read(80).split(b"\x00")[0].decode("utf8")  # max file name size is 80 bytes

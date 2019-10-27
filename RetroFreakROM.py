@@ -18,9 +18,9 @@ ROM_SECRET = unhexlify("6F5BC7F1068C3D60D6A62E757739453A")
 REQUEST_MAGIC = b"WPR2"
 REQUEST_SECRET = unhexlify("D7A1066CE2DC0D5A8636D1E8D0965E90")
 REQUEST_FILE = "retrofreak-update-request.dat"
-REQUEST_PRV_KEY_FILE = "request.prv"
+REQUEST_PUB_KEY_FILE = "request.pub"
 
-REQUEST_PRV_KEY = None
+REQUEST_PUB_KEY = None
 
 def read_file(filename: str) -> bytes:
 	with open(filename, "rb") as f:
@@ -32,21 +32,21 @@ def write_file(filename: str, data: (bytes, bytearray)) -> None:
 		f.write(data)
 
 def decrypt_update_request(data: (bytes, bytearray)) -> (bytes, bytearray):
-		global REQUEST_SECRET, REQUEST_MAGIC, REQUEST_PRV_KEY
+	global REQUEST_SECRET, REQUEST_MAGIC, REQUEST_PUB_KEY
 
-		iv = data[:16]
-		cipher = AES.new(REQUEST_SECRET, AES.MODE_CBC, iv)
-		enc_data = data[16:]  # array + signature
-		dec_data = unpad(cipher.decrypt(enc_data), AES.block_size)
-		body = dec_data[:-REQUEST_PRV_KEY.size_in_bytes()]  # UNIQUE_MAGIC + DNA
-		signature = dec_data[-REQUEST_PRV_KEY.size_in_bytes():]
-		# verify file magic
-		assert body[:4] == REQUEST_MAGIC, "Invalid update request magic"
-		# verify signature
-		verifier = PKCS1_v1_5.new(REQUEST_PRV_KEY)
-		assert verifier.verify(SHA1.new(body), signature), "Invalid signature"
-		(magic, dna, sys_fw_ver, ver_code, pcba_rev) = unpack("<4s 16s 3I", body)
-		return dna
+	iv = data[:16]
+	cipher = AES.new(REQUEST_SECRET, AES.MODE_CBC, iv)
+	enc_data = data[16:]  # array + signature
+	dec_data = unpad(cipher.decrypt(enc_data), AES.block_size)
+	body = dec_data[:-REQUEST_PUB_KEY.size_in_bytes()]  # UNIQUE_MAGIC + DNA
+	signature = dec_data[-REQUEST_PUB_KEY.size_in_bytes():]
+	# verify file magic
+	assert body[:4] == REQUEST_MAGIC, "Invalid update request magic"
+	# verify signature
+	verifier = PKCS1_v1_5.new(REQUEST_PUB_KEY)
+	assert verifier.verify(SHA1.new(body), signature), "Invalid signature"
+	(magic, dna, sys_fw_ver, ver_code, pcba_rev) = unpack("<4s 16s 3I", body)
+	return dna
 
 def derive_rom_key(dna: (bytes, bytearray)) -> (bytes, bytearray):
 	global ROM_SECRET
@@ -83,13 +83,13 @@ def encrypt_rom(dna: (bytes, bytearray), data: (bytes, bytearray)) -> (bytes, by
 	return hdr_buf + cipher.encrypt(data)
 
 def main() -> None:
-	global REQUEST_PRV_KEY, REQUEST_PRV_KEY_FILE, ROM_MAGIC, REQUEST_FILE
+	global REQUEST_PUB_KEY, REQUEST_PUB_KEY_FILE, ROM_MAGIC, REQUEST_FILE
 
-	REQUEST_PRV_KEY = RSA.import_key(read_file(join("Keys", REQUEST_PRV_KEY_FILE)))
+	REQUEST_PUB_KEY = RSA.import_key(read_file(join("Keys", REQUEST_PUB_KEY_FILE)))
 
 	parser = ArgumentParser(description="A script to encrypt/decrypt ROM's to/from the RetroFreak")
 	parser.add_argument("ifile", type=str, help="The ROM to read from")
-	parser.add_argument("ofile", type=str, help="The ROM file to write to")
+	parser.add_argument("-o", type=str, help="The ROM file to write to")
 	parser.add_argument("-k", type=str, default=REQUEST_FILE, help="The update request file to read from")
 	args = parser.parse_args()
 
@@ -99,9 +99,9 @@ def main() -> None:
 	dna = decrypt_update_request(read_file(args.k))
 	rom_data = read_file(args.ifile)
 	if rom_data[:4] == ROM_MAGIC:  # encrypted
-		write_file(args.ofile, decrypt_rom(dna, rom_data))
+		write_file(args.o if args.o else args.ifile, decrypt_rom(dna, rom_data))
 	else:  # plaintext
-		write_file(args.ofile, encrypt_rom(dna, rom_data))
+		write_file(args.o if args.o else args.ifile, encrypt_rom(dna, rom_data))
 
 
 if __name__ == "__main__":
