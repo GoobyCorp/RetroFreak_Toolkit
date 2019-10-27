@@ -12,7 +12,7 @@ The RetroFreak has an rk3066 SoC and uses the Rockchip image format for updates;
 A script to unpack updates for the RetroFreak that you can download from the official website [here](https://www.cybergadget.co.jp/support/retrofreak/en/update.html).
 
 ##### RetroFreakROM.py
-This file is used to encrypt ROM's so you can play them on your RetroFreak if you already have them dumped.
+This file is used to encrypt/decrypt ROM's so you can play them on your RetroFreak or PC.
 
 ##### An example to enable ADB (build.prop inside system.img):
 ```
