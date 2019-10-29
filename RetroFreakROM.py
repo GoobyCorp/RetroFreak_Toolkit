@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 from os import urandom
-from os.path import isfile, join
 from argparse import ArgumentParser
-from binascii import unhexlify, crc32
+from os.path import isfile, join, basename
 from struct import unpack, pack_into, unpack_from
+from binascii import unhexlify, crc32, hexlify as _hexlify
 
 # pip install pycryptodomex
 from Cryptodome.Cipher import AES
@@ -21,6 +21,8 @@ REQUEST_FILE = "retrofreak-update-request.dat"
 REQUEST_PUB_KEY_FILE = "request.pub"
 
 REQUEST_PUB_KEY = None
+
+hexlify = lambda b: _hexlify(b).decode("utf8").upper()
 
 def read_file(filename: str) -> bytes:
 	with open(filename, "rb") as f:
@@ -90,18 +92,29 @@ def main() -> None:
 	parser = ArgumentParser(description="A script to encrypt/decrypt ROM's to/from the RetroFreak")
 	parser.add_argument("ifile", type=str, help="The ROM to read from")
 	parser.add_argument("-o", type=str, help="The ROM file to write to")
-	parser.add_argument("-k", type=str, default=REQUEST_FILE, help="The update request file to read from")
+	parser.add_argument("-s", "--serial", type=str, help="The serial number you want to use")
+	parser.add_argument("-k", "--keyfile", type=str, default=REQUEST_FILE, help="The update request file to read from")
 	args = parser.parse_args()
 
-	assert isfile(args.k), args.k + " is required to continue"
 	assert isfile(args.ifile), "The specified ROM file doesn't exist"
 
-	dna = decrypt_update_request(read_file(args.k))
+	if args.serial:
+		dna = unhexlify(args.serial)
+	elif args.keyfile and isfile(args.keyfile):
+		dna = decrypt_update_request(read_file(args.keyfile))
+	else:
+		raise FileNotFoundError("-s (--serial) or -k (--keyfile) is required but not provided")
+
+	print("Serial #: " + hexlify(dna))
+
 	rom_data = read_file(args.ifile)
 	if rom_data[:4] == ROM_MAGIC:  # encrypted
+		print(f"Decrypting \"{basename(args.ifile)}\"...")
 		write_file(args.o if args.o else args.ifile, decrypt_rom(dna, rom_data))
 	else:  # plaintext
+		print(f"Encrypting \"{basename(args.ifile)}\"...")
 		write_file(args.o if args.o else args.ifile, encrypt_rom(dna, rom_data))
+	print("Done!")
 
 
 if __name__ == "__main__":
