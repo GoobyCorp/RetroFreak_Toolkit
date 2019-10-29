@@ -19,6 +19,7 @@ REQUEST_MAGIC = b"WPR2"
 REQUEST_SECRET = unhexlify("D7A1066CE2DC0D5A8636D1E8D0965E90")
 REQUEST_FILE = "retrofreak-update-request.dat"
 REQUEST_PUB_KEY_FILE = "request.pub"
+REQUEST_SIZE = 192
 
 REQUEST_PUB_KEY = None
 
@@ -36,6 +37,7 @@ def write_file(filename: str, data: (bytes, bytearray)) -> None:
 def decrypt_update_request(data: (bytes, bytearray)) -> (bytes, bytearray):
 	global REQUEST_SECRET, REQUEST_MAGIC, REQUEST_PUB_KEY
 
+	assert len(data) == REQUEST_SIZE, "Invalid update request size"
 	iv = data[:16]
 	cipher = AES.new(REQUEST_SECRET, AES.MODE_CBC, iv)
 	enc_data = data[16:]  # array + signature
@@ -50,13 +52,13 @@ def decrypt_update_request(data: (bytes, bytearray)) -> (bytes, bytearray):
 	(magic, dna, sys_fw_ver, ver_code, pcba_rev) = unpack("<4s 16s 3I", body)
 	return dna
 
-def derive_rom_key(dna: (bytes, bytearray)) -> (bytes, bytearray):
+def derive_rom_key(dna: (bytes, bytearray)) -> bytes:
 	global ROM_SECRET
 
 	digest = bytearray(MD5.new(dna).digest())
 	for i in range(16):
 		digest[i] ^= ROM_SECRET[i]
-	return digest
+	return bytes(digest)
 
 def decrypt_rom(dna: (bytes, bytearray), data: (bytes, bytearray)) -> (bytes, bytearray):
 	global ROM_MAGIC
